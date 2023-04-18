@@ -1,19 +1,22 @@
 #ifndef MATRIXLED_H
 #define MATRIXLED_H
 
-class Matrxled
+#include <stdint.h>
+
+#include "i2c_matrixled_sender.h"
+
+class Matrixled
 {
 private:
-  /* data */
+  I2CMatrixledSender *_sender;
+  int _maxDevices;
+	
 public:
-  Matrxled(/* args */);
-  ~Matrxled();
+  Matrixled(I2CMatrixledSender *sender, int nbDevice);
+  ~Matrixled();
 
-  
+  void displaySprite(uint8_t* sprite, int device);
 
 };
-
-
-
 
 #endif

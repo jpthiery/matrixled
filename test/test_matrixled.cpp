@@ -1,4 +1,5 @@
-#include "calculator.h"
+#include "matrixled.h"
+#include "i2c_matrixled_sender.h"
 
 #include <iostream>
 #include <string>
@@ -19,10 +20,42 @@
 using namespace CppUnit;
 using namespace std;
 
-class TestCalculator : public CppUnit::TestFixture
+
+class Request {
+    public:
+    int device;
+    unsigned char address;
+    unsigned char data;
+};
+
+class SenderCaptor: public I2CMatrixledSender {
+public:
+
+  list<Request> requests; 
+
+  SenderCaptor() {
+  }
+
+  ~SenderCaptor() {
+
+  }
+
+  void sendToDevice(int device, uint8_t address, uint8_t data) {
+    Request req;
+    req.device = device;
+    req.address = address;
+    req.data = data;
+    requests.push_back(
+        req
+    );
+  } 
+
+};
+
+class TestMatrixled : public CppUnit::TestFixture
 {
-    CPPUNIT_TEST_SUITE(TestCalculator);
-    CPPUNIT_TEST(testAddition);
+    CPPUNIT_TEST_SUITE(TestMatrixled);
+    CPPUNIT_TEST(testSendCommandWhenSubmit);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -30,33 +63,42 @@ public:
     void tearDown(void);
 
 protected:
-    void testAddition(void);
+    void testSendCommandWhenSubmit(void);
 
 private:
-
-    Calculator *mTestObj;
+    SenderCaptor *senderCaptor;
+    Matrixled *mTestObj;
 };
 
 void
-TestCalculator::testAddition(void)
-{
-    CPPUNIT_ASSERT(7 == mTestObj->add(2,3));
+TestMatrixled::testSendCommandWhenSubmit(void)
+{   
+    uint8_t sprite[] = {0x11};
+
+    mTestObj->displaySprite(sprite, 1);
+    
+    int nbrequest = senderCaptor->requests.size();
+    
+    CPPUNIT_ASSERT_MESSAGE(message_to_string("Expected 1 but obtain " + nbrequest) ,nbrequest == 1);
 }
 
 
-void TestCalculator::setUp(void)
+
+void TestMatrixled::setUp(void)
 {
-    mTestObj = new Calculator();
+    senderCaptor = new SenderCaptor();
+    mTestObj = new Matrixled(senderCaptor, 1);
 }
 
-void TestCalculator::tearDown(void)
+void TestMatrixled::tearDown(void)
 {
+    delete senderCaptor;
     delete mTestObj;
 }
 
 //-----------------------------------------------------------------------------
 
-CPPUNIT_TEST_SUITE_REGISTRATION( TestCalculator );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestMatrixled );
 
 int main(int argc, char* argv[])
 {
