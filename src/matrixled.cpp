@@ -1,7 +1,7 @@
 #include "matrixled.h"
 #include <stdint.h>
 
-Matrixled::Matrixled(I2CMatrixledSender *sender, int nbDevice)
+Matrixled::Matrixled(MatrixledSender *sender, int nbDevice)
 {
   _sender = sender;
   _maxDevices = nbDevice;

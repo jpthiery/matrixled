@@ -1,5 +1,5 @@
 #include "matrixled.h"
-#include "i2c_matrixled_sender.h"
+#include "matrixled_sender.h"
 
 #include <iostream>
 #include <string>
@@ -28,7 +28,7 @@ class Request {
     unsigned char data;
 };
 
-class SenderCaptor: public I2CMatrixledSender {
+class SenderCaptor: public MatrixledSender {
 public:
 
   list<Request> requests; 
