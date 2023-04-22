@@ -304,9 +304,6 @@ void TestMatrixled::testSendSpriteInvaders(void) {
 
 }
 
-
-
-
 void TestMatrixled::setUp(void)
 {
     senderCaptor = new SenderCaptor();

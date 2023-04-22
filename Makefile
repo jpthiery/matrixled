@@ -4,6 +4,7 @@ TARGET_EXEC := hello
 BUILD_DIR := ./build
 SRC_DIRS := ./src
 TEST_DIRS := ./test
+ARDUINO_LIB_DIR := /home/jpthiery/.arduino15/packages/arduino/hardware/avr/1.8.6/cores/arduino/
 
 # Find all the C and C++ files we want to compile
 # Note the single quotes around the * expressions. The shell will incorrectly expand these otherwise, but we want to send the * directly to the find command.
