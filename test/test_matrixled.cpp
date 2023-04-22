@@ -40,7 +40,7 @@ public:
 
   }
 
-  void sendToDevice(int device, uint8_t address, uint8_t data) {
+  void sendToDevice(int device, uint8_t address, uint8_t data) {  
     Request req;
     req.device = device;
     req.address = address;
@@ -55,7 +55,12 @@ public:
 class TestMatrixled : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE(TestMatrixled);
-    CPPUNIT_TEST(testSendCommandWhenSubmit);
+    CPPUNIT_TEST(testSendPixelOnTopRightCorner);
+    CPPUNIT_TEST(testSendPixelOnTopLeftCorner);
+    CPPUNIT_TEST(testSendPixelOnTopLine);
+    CPPUNIT_TEST(testSendPixelOnSecondLine);
+    CPPUNIT_TEST(testSendPixelOnLeftColumn);
+    CPPUNIT_TEST(testSendSpriteInvaders);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -63,30 +68,249 @@ public:
     void tearDown(void);
 
 protected:
-    void testSendCommandWhenSubmit(void);
+    void testSendPixelOnTopRightCorner(void);
+    void testSendPixelOnTopLeftCorner(void);
+    void testSendPixelOnTopLine(void);
+    void testSendPixelOnSecondLine(void);
+    void testSendPixelOnLeftColumn(void);
+    void testSendSpriteInvaders(void);
 
 private:
     SenderCaptor *senderCaptor;
     Matrixled *mTestObj;
+    void assertSprite(char expectedSprite[8][8]);
 };
 
-void
-TestMatrixled::testSendCommandWhenSubmit(void)
-{   
-    uint8_t sprite[] = {0x11};
+void TestMatrixled::assertSprite(char expectedSprite[8][8]) {
+    uint8_t expectedRow[8];
+    for(int row=0; row<8; row++) {
+        uint8_t current = expectedRow[row];
+        for (int colomn=0; colomn<8; colomn++) { 
+            current = current << 1;
+            char expectedLedState = expectedSprite[row][colomn];
+            if (expectedLedState == 'X') {
+              current = current ^ 0x01;
+            }
+        }
+        expectedRow[row] = current;
+    }
+
+    list<Request> requests = senderCaptor->requests;
+    list<Request>::iterator reqIterator = requests.begin();
+    int i = 0;
+    for (std::list<Request>::iterator req = requests.begin(); req != requests.end(); ++req){
+#ifdef TEST_DEBUG        
+        printf("\n");
+        printf("Req[%d] address %d, device %d, data %d\n", i, req->address, req->device, req->data);
+        printf("actual %d\n" ,req->data);
+        printf("expceted %d\n", expectedRow[i]);
+#endif
+        CPPUNIT_ASSERT(req->address == i+1);
+        CPPUNIT_ASSERT(req->data == expectedRow[i]);
+        i++;
+    }
+    CPPUNIT_ASSERT(i==8);
+}
+
+void TestMatrixled::testSendPixelOnTopLeftCorner(void) {
+
+    uint8_t sprite[8] = {
+        0x80,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00
+    };
+
+    char expectedSprite[8][8] = {
+        {'X','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'}
+    };
 
     mTestObj->displaySprite(sprite, 1);
-    
     int nbrequest = senderCaptor->requests.size();
-    
-    CPPUNIT_ASSERT_MESSAGE(message_to_string("Expected 1 but obtain " + nbrequest) ,nbrequest == 1);
+    CPPUNIT_ASSERT(nbrequest == 8);
+
+    assertSprite(expectedSprite);
+
 }
+
+void TestMatrixled::testSendPixelOnTopRightCorner(void) {
+
+    uint8_t sprite[8] = {
+        0x01,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00
+    };
+
+    char expectedSprite[8][8] = {
+        {'_', '_','_','_','_','_','_','X'},
+        {'_', '_','_','_','_','_','_','_'},
+        {'_', '_','_','_','_','_','_','_'},
+        {'_', '_','_','_','_','_','_','_'},
+        {'_', '_','_','_','_','_','_','_'},
+        {'_', '_','_','_','_','_','_','_'},
+        {'_', '_','_','_','_','_','_','_'},
+        {'_', '_','_','_','_','_','_','_'}
+    };
+
+    mTestObj->displaySprite(sprite, 1);
+    int nbrequest = senderCaptor->requests.size();
+    CPPUNIT_ASSERT(nbrequest == 8);
+
+    assertSprite(expectedSprite);
+
+}
+
+void TestMatrixled::testSendPixelOnTopLine(void) {
+
+    uint8_t sprite[8] = {
+        0xff,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00
+    };
+
+    char expectedSprite[8][8] = {
+        {'X','X','X','X','X','X','X','X'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'}
+    };
+
+    mTestObj->displaySprite(sprite, 1);
+    int nbrequest = senderCaptor->requests.size();
+    CPPUNIT_ASSERT(nbrequest == 8);
+
+    assertSprite(expectedSprite);
+
+}
+
+void TestMatrixled::testSendPixelOnSecondLine(void) {
+
+    uint8_t sprite[8] = {
+        0x00,
+        0xff,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00
+    };
+
+    char expectedSprite[8][8] = {
+        {'_','_','_','_','_','_','_','_'},
+        {'X','X','X','X','X','X','X','X'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'},
+        {'_','_','_','_','_','_','_','_'}
+    };
+
+    mTestObj->displaySprite(sprite, 1);
+    int nbrequest = senderCaptor->requests.size();
+    CPPUNIT_ASSERT(nbrequest == 8);
+
+    assertSprite(expectedSprite);
+
+}
+
+void TestMatrixled::testSendPixelOnLeftColumn(void) {
+
+    uint8_t sprite[8] = {
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80,
+        0x80
+    };
+
+    char expectedSprite[8][8] = {
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'},
+        {'X','_','_','_','_','_','_','_'}
+    };
+
+    mTestObj->displaySprite(sprite, 1);
+    int nbrequest = senderCaptor->requests.size();
+    CPPUNIT_ASSERT(nbrequest == 8);
+
+    assertSprite(expectedSprite);
+
+}
+
+void TestMatrixled::testSendSpriteInvaders(void) {
+
+    uint8_t sprite[8] = {
+        0x18,
+        0x3c,
+        0x7e,
+        0xdb,
+        0xff,
+        0x24,
+        0x5a,
+        0x42
+    };
+
+    char expectedSprite[8][8] = {
+        {'_','_','_','X','X','_','_','_'},
+        {'_','_','X','X','X','X','_','_'},
+        {'_','X','X','X','X','X','X','_'},
+        {'X','X','_','X','X','_','X','X'},
+        {'X','X','X','X','X','X','X','X'},
+        {'_','_','X','_','_','X','_','_'},
+        {'_','X','_','X','X','_','X','_'},
+        {'_','X','_','_','_','_','X','_'}
+    };
+
+    mTestObj->displaySprite(sprite, 1);
+    int nbrequest = senderCaptor->requests.size();
+    CPPUNIT_ASSERT(nbrequest == 8);
+
+    assertSprite(expectedSprite);
+
+}
+
 
 
 
 void TestMatrixled::setUp(void)
 {
     senderCaptor = new SenderCaptor();
+
     mTestObj = new Matrixled(senderCaptor, 1);
 }
 

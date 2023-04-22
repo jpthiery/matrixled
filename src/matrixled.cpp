@@ -12,9 +12,11 @@ Matrixled::~Matrixled()
 
 }
 
-void Matrixled::displaySprite(uint8_t* sprite, int device) {
+void Matrixled::displaySprite(uint8_t sprite[], int device) {
   
-  uint8_t address = 0x01;
-  uint8_t data = 0x01;
-  _sender->sendToDevice(device, address, data);
+  for (int row=0; row < MATRIX_HEIGHT; row++) {
+    uint8_t line = sprite[row]; 
+    _sender->sendToDevice(device, row+1, line);
+  }
+  
 }

@@ -5,6 +5,9 @@
 
 #include "i2c_matrixled_sender.h"
 
+#define MATRIX_WITH 8
+#define MATRIX_HEIGHT 8
+
 class Matrixled
 {
 private:
@@ -15,7 +18,7 @@ public:
   Matrixled(I2CMatrixledSender *sender, int nbDevice);
   ~Matrixled();
 
-  void displaySprite(uint8_t* sprite, int device);
+  void displaySprite(uint8_t sprite[], int device);
 
 };
 
